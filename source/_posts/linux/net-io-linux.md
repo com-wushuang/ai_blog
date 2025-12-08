@@ -1,7 +1,8 @@
 ---
 title: linux 网络io模型
 date: 2025-12-08 10:46:12
-tags: linux
+tags: 
+categories: linux
 ---
 
 ## 思考
@@ -24,44 +25,6 @@ linux 网络io模型有以下几种：
 - 信号驱动io模型
 - 异步io模型
 
-```mermaid
-flowchart TD
-    A[应用进程调用 Recvfrom] --> B{IO模型}
-
-    B --> C[阻塞IO]
-    B --> D[非阻塞IO]
-    B --> E[IO多路复用]
-    B --> F[信号驱动IO]
-    B --> G[异步IO]
-
-    subgraph C_Flow [阻塞IO流程]
-        C1[阶段1：等待数据<br>进程阻塞] --> C2[阶段2：拷贝数据<br>进程阻塞] --> C3[返回结果]
-    end
-
-    subgraph D_Flow [非阻塞IO流程]
-        D1[调用即返回<br>（EWOULDBLOCK）] --> D2{数据就绪？}
-        D2 -- 否 --> D3[轮询询问内核] --> D1
-        D2 -- 是 --> D4[阶段2：拷贝数据<br>进程阻塞] --> D5[返回结果]
-    end
-
-    subgraph E_Flow [IO多路复用流程]
-        E1[调用select/poll<br>进程阻塞] --> E2[任一socket就绪后返回] --> E3[阶段2：拷贝数据<br>进程阻塞] --> E4[返回结果]
-    end
-
-    subgraph F_Flow [信号驱动IO流程]
-        F1[调用sigaction<br>立即返回] --> F2[内核发送SIGIO信号] --> F3[阶段2：拷贝数据<br>进程阻塞] --> F4[返回结果]
-    end
-
-    subgraph G_Flow [异步IO流程]
-        G1[调用aio_read<br>立即返回] --> G2[内核完成所有操作<br>（等待+拷贝）] --> G3[发送信号通知结果]
-    end
-
-    C --> C_Flow
-    D --> D_Flow
-    E --> E_Flow
-    F --> F_Flow
-    G --> G_Flow
-```
 
 #### 1. 阻塞IO
 - **过程**：如上图“阻塞IO流程”所示，应用进程在发出 `recvfrom` 调用后，整个进程被挂起，直到数据完全准备好并从内核空间拷贝到用户空间后，调用才返回。  
